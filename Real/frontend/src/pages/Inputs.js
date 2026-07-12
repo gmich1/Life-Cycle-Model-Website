@@ -87,11 +87,13 @@ function Inputs() {
   const [result, setResult] = useState(null)
   const [startAge, setStartAge] = useState(20)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault() // Prevent automatic page refresh by browser (otherwise would refresh on submit of form)
     setError(null)
     setResult(null)
+    setLoading(true)
 
     // Read every named input straight from the form, converting to numbers.
     const formData = new FormData(e.target) // e.target is the form element
@@ -119,6 +121,8 @@ function Inputs() {
     } catch (err) {
       console.error('Submit failed:', err)
       setError(err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -152,7 +156,9 @@ function Inputs() {
         ))}
 
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary">Submit</button>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Running…' : 'Submit'}
+          </button>
           <a href="/algorithm_simple.html" target="_blank" rel="noopener noreferrer">
             <button type="button" className="btn btn-secondary">
               Simple Algorithm Details
@@ -165,6 +171,13 @@ function Inputs() {
           </a>
         </div>
       </form>
+
+      {loading && (
+        <div className="loading">
+          <div className="spinner" />
+          <p>Running simulation…</p>
+        </div>
+      )}
 
       {error && <p className="error-msg">Error: {error}</p>}
 
