@@ -43,13 +43,13 @@ const FIELDS = [
   { name: 'ret_fac', group: 'incprofile', label: 'Retirement income factor (λ)',        def: 0.68212,
     desc: 'Fraction of pre-retirement income received as pension/Social Security (~68%); look at the subject\'s Social Security statement or national replacement-rate tables. The bigger their guaranteed pension, the safer they feel in retirement — so they can spend more freely and keep more in stocks even when old.' },
   { name: 'aa',      group: 'incprofile', label: 'Income intercept',                    def: 0.530339,
-    desc: '' },
+    combo: 'incomecurve', comboDesc: 'Coefficients of the hump-shaped age–earnings curve f(t); obtained by regressing log earnings on age, age², age³ in census/panel data (or just use these fitted values). Together they draw the typical earnings path: low at the start, rising through your career, peaking in middle age, then easing off. A big future paycheck is like owning a safe asset, which is exactly why young people — who have a whole career of earnings ahead — can afford to go heavily into stocks.' },
   { name: 'b1',      group: 'incprofile', label: 'Income age coefficient',              def: 0.16818,
-    desc: '' },
+    combo: 'incomecurve' },
   { name: 'b2',      group: 'incprofile', label: 'Income age² coefficient',             def: -0.00323371,
-    desc: '' },
+    combo: 'incomecurve' },
   { name: 'b3',      group: 'incprofile', label: 'Income age³ coefficient',             def: 1.9704e-5,
-    desc: 'Coefficients of the hump-shaped age–earnings curve f(t); obtained by regressing log earnings on age, age², age³ in census/panel data (or just use these fitted values).' },
+    combo: 'incomecurve' },
   { name: 'ncash',   group: 'solver',     label: 'Cash-on-hand grid size',              def: 51,
     desc: 'How many different wealth levels (from poor to rich) the model checks. More levels give a smoother, more precise answer but run slower.' },
   { name: 'na',      group: 'solver',     label: 'Allocation grid size',                def: 51,
@@ -134,26 +134,61 @@ function Inputs() {
       </div>
 
       <form method="post" onSubmit={handleSubmit}>
-        {GROUPS.map((g) => (
-          <fieldset className="field-group" key={g.id}>
-            <legend>{g.title}</legend>
-            <div className="field-grid">
-              {FIELDS.filter((f) => f.group === g.id).map((f) => (
-                <div className="field" key={f.name}>
-                  <label htmlFor={f.name}>{f.label}</label>
-                  <input
-                    id={f.name}
-                    type="number"
-                    step="any"
-                    name={f.name}
-                    defaultValue={f.def}
-                  />
-                  {f.desc && <div className="field-desc">{f.desc}</div>}
-                </div>
-              ))}
-            </div>
-          </fieldset>
-        ))}
+        {GROUPS.map((g) => {
+          // Merge consecutive fields sharing a `combo` id into one block so
+          // they stack together under a single shared description.
+          const items = []
+          for (const f of FIELDS.filter((x) => x.group === g.id)) {
+            const last = items[items.length - 1]
+            if (f.combo && last && last.combo === f.combo) {
+              last.fields.push(f)
+              if (!last.desc && f.comboDesc) last.desc = f.comboDesc
+            } else if (f.combo) {
+              items.push({ combo: f.combo, fields: [f], desc: f.comboDesc })
+            } else {
+              items.push({ field: f })
+            }
+          }
+
+          const renderInput = (f) => (
+            <input
+              id={f.name}
+              type="number"
+              step="any"
+              name={f.name}
+              defaultValue={f.def}
+            />
+          )
+
+          return (
+            <fieldset className="field-group" key={g.id}>
+              <legend>{g.title}</legend>
+              <div className="field-grid">
+                {items.map((item) =>
+                  item.combo ? (
+                    <div className="field field-combo" key={item.combo}>
+                      {item.fields.map((f) => (
+                        <div className="combo-row" key={f.name}>
+                          <label htmlFor={f.name}>{f.label}</label>
+                          {renderInput(f)}
+                        </div>
+                      ))}
+                      {item.desc && <div className="field-desc">{item.desc}</div>}
+                    </div>
+                  ) : (
+                    <div className="field" key={item.field.name}>
+                      <label htmlFor={item.field.name}>{item.field.label}</label>
+                      {renderInput(item.field)}
+                      {item.field.desc && (
+                        <div className="field-desc">{item.field.desc}</div>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </fieldset>
+          )
+        })}
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={loading}>

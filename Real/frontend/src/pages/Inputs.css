@@ -96,6 +96,13 @@
   line-height: 1.4;
 }
 
+/* A combo block stacks several labelled inputs above one shared description. */
+.field-combo .combo-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.6rem;
+}
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;
