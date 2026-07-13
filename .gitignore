@@ -3,3 +3,8 @@
 /.vscode
 /1
 /Frontend
+
+# Python
+__pycache__/
+*.pyc
+venv/

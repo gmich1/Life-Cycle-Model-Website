@@ -103,7 +103,7 @@ function Inputs() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/run', {
+      const response = await fetch('/api/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(params),
