@@ -92,7 +92,7 @@ function Inputs() {
 
   // Expected solve time. The bar fills over this window and then holds at
   // 99% until the real result arrives (the run may finish sooner or later).
-  const EXPECTED_MS = 40000
+  const EXPECTED_MS = 50000
 
   async function handleSubmit(e) {
     e.preventDefault() // Prevent automatic page refresh by browser (otherwise would refresh on submit of form)
