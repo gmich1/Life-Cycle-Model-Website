@@ -244,11 +244,11 @@ function Inputs() {
           <div className="chart-grid">
             <figure className="chart">
               <img src={charts.lifecycle}
-                   alt="How consumption, wealth, income, and stock share evolve over a lifetime" />
+                   alt="Life-cycle profiles: consumption, wealth and income by age, average stock share by age, and profiles scaled by age-20 income" />
             </figure>
             <figure className="chart">
               <img src={charts.policy}
-                   alt="At every age, the stock share falls as your savings grow" />
+                   alt="Policy functions: optimal consumption and stock share versus cash-on-hand at ages 25, 45 and 65" />
             </figure>
           </div>
         </div>

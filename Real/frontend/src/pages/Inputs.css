@@ -188,7 +188,7 @@
 /* Life-cycle figures rendered by the backend (base64 PNGs). */
 .chart-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1fr;   /* wide multi-panel figures: one per row */
   gap: 1.25rem;
 }
 .chart {
