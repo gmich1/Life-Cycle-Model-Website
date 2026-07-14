@@ -136,6 +136,14 @@ function Inputs() {
       setStartAge(params.tb || 20)   // label table rows by real age
       setProgress(100)
       setCharts(data.charts)
+      // Share the freshly-generated figures with the static algorithm-detail
+      // pages (same origin) so they show this run's charts instead of their
+      // frozen defaults. Their inline scripts read this on load.
+      try {
+        window.localStorage.setItem('lifecycleCharts', JSON.stringify(data.charts))
+      } catch (e) {
+        console.warn('Could not cache charts for detail pages:', e)
+      }
       setResult(data.sim)
     } catch (err) {
       console.error('Submit failed:', err)

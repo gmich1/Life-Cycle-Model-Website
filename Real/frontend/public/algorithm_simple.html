@@ -7949,5 +7949,19 @@ a.anchor-link {
 </div>
 </div>
 </main>
+
+<script data-lifecycle-live-charts="1">
+(function () {
+  try {
+    var charts = JSON.parse(localStorage.getItem("lifecycleCharts") || "null");
+    if (!charts) return;
+    var order = ["lifecycle","policy"];
+    var imgs = document.querySelectorAll("img");
+    order.forEach(function (key, i) {
+      if (key && imgs[i] && charts[key]) imgs[i].src = charts[key];
+    });
+  } catch (e) {}
+})();
+</script>
 </body>
 </html>
