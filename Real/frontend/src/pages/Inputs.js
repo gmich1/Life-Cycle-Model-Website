@@ -88,12 +88,27 @@ function Inputs() {
   const [startAge, setStartAge] = useState(20)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  // Expected solve time. The bar fills over this window and then holds at
+  // 99% until the real result arrives (the run may finish sooner or later).
+  const EXPECTED_MS = 60000
 
   async function handleSubmit(e) {
     e.preventDefault() // Prevent automatic page refresh by browser (otherwise would refresh on submit of form)
     setError(null)
     setResult(null)
     setLoading(true)
+    setProgress(0)
+
+    // Advance an estimated progress bar from 0 → 99% over EXPECTED_MS.
+    // It's a time estimate, not the true step count, so it caps at 99% and
+    // only jumps to 100% once the response actually comes back.
+    const startTime = Date.now()
+    const timer = setInterval(() => {
+      const pct = Math.min(99, ((Date.now() - startTime) / EXPECTED_MS) * 100)
+      setProgress(pct)
+    }, 200)
 
     // Read every named input straight from the form, converting to numbers.
     const formData = new FormData(e.target) // e.target is the form element
@@ -117,11 +132,13 @@ function Inputs() {
 
       console.log('Server responded:', data)
       setStartAge(params.tb || 20)   // label table rows by real age
+      setProgress(100)
       setResult(data.sim)
     } catch (err) {
       console.error('Submit failed:', err)
       setError(err.message)
     } finally {
+      clearInterval(timer)
       setLoading(false)
     }
   }
@@ -209,8 +226,10 @@ function Inputs() {
 
       {loading && (
         <div className="loading">
-          <div className="spinner" />
-          <p>Running simulation…</p>
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <p>Running simulation… {Math.floor(progress)}%</p>
         </div>
       )}
 
