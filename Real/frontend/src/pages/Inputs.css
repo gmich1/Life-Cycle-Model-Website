@@ -189,10 +189,12 @@
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr;   /* wide multi-panel figures: one per row */
+  justify-items: center;        /* centre the narrowed figures */
   gap: 1.25rem;
 }
 .chart {
   margin: 0;
+  width: 80%;                   /* figures span 80% of the page width */
   background: #fff;
   border: 1px solid var(--border-grey);
   border-radius: var(--radius);
