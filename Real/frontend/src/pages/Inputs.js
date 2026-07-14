@@ -85,6 +85,7 @@ const LABELS = {
 
 function Inputs() {
   const [result, setResult] = useState(null)
+  const [charts, setCharts] = useState(null)
   const [startAge, setStartAge] = useState(20)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -98,6 +99,7 @@ function Inputs() {
     e.preventDefault() // Prevent automatic page refresh by browser (otherwise would refresh on submit of form)
     setError(null)
     setResult(null)
+    setCharts(null)
     setLoading(true)
     setProgress(0)
 
@@ -133,6 +135,7 @@ function Inputs() {
       console.log('Server responded:', data)
       setStartAge(params.tb || 20)   // label table rows by real age
       setProgress(100)
+      setCharts(data.charts)
       setResult(data.sim)
     } catch (err) {
       console.error('Submit failed:', err)
@@ -235,9 +238,25 @@ function Inputs() {
 
       {error && <p className="error-msg">Error: {error}</p>}
 
+      {charts && (
+        <div className="results">
+          <h3>The Life Cycle Model Visualized</h3>
+          <div className="chart-grid">
+            <figure className="chart">
+              <img src={charts.lifecycle}
+                   alt="How consumption, wealth, income, and stock share evolve over a lifetime" />
+            </figure>
+            <figure className="chart">
+              <img src={charts.policy}
+                   alt="At every age, the stock share falls as your savings grow" />
+            </figure>
+          </div>
+        </div>
+      )}
+
       {result && (
         <div className="results">
-          <h3>Year-by-year summary</h3>
+          <h3>The Life Cycle Model Quantified</h3>
           <div className="table-wrap">
             <table className="results-table">
               <thead>

@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "_model"))
 
 from solver import solve_model, simulate  # noqa: E402
+from plots import make_charts  # noqa: E402
 
 # Parameters the form is expected to send (matches the frontend FIELDS list).
 FIELD_NAMES = [
@@ -41,10 +42,18 @@ def _validate(inputs):
 
 
 def _run_model(inputs):
-    """Run the model and return the JSON-serializable sim dict."""
+    """Run the model and return the JSON-serializable result payload.
+
+    'sim' feeds the year-by-year table; 'charts' holds the two life-cycle
+    figures (base64 PNG data URIs) rendered from these same parameters.
+    """
     params, grids, survprob, income, C, A, V = solve_model(inputs)
     sim = simulate(params, grids, survprob, income, C, A)
-    return {key: value.tolist() for key, value in sim.items()}
+    charts = make_charts(params, grids, sim, A)
+    return {
+        "sim": {key: value.tolist() for key, value in sim.items()},
+        "charts": charts,
+    }
 
 
 class handler(BaseHTTPRequestHandler):
@@ -69,8 +78,8 @@ class handler(BaseHTTPRequestHandler):
             return self._send(400, {"error": error})
 
         try:
-            sim = _run_model(inputs)
+            payload = _run_model(inputs)
         except Exception as exc:  # surface any solver failure to the UI banner
             return self._send(500, {"error": f"Model run failed: {exc}"})
 
-        return self._send(200, {"sim": sim})
+        return self._send(200, payload)
