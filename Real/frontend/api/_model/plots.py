@@ -102,4 +102,29 @@ def make_charts(params, grids, sim, C, A):
     fig.tight_layout()
     lifecycle_uri = _fig_to_uri(fig)
 
-    return {"lifecycle": lifecycle_uri, "policy": policy_uri}
+    # ---- Figure 3: portfolio composition (stocks vs bonds, stacked) ----
+    # meanS and meanB are the stock and bond holdings behind meanalpha, so
+    # stacking them shows the actual split of savings at each age rather than
+    # just the share. Both are non-negative and sum to total savings.
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.stackplot(
+        ages,
+        np.asarray(sim["meanS"]),
+        np.asarray(sim["meanB"]),
+        labels=["Stocks", "Bonds"],
+        colors=["#003E74", "#9ecae1"],
+    )
+    ax.set_title("Portfolio Composition: Stocks vs Bonds")
+    ax.set_xlabel("Age")
+    ax.set_ylabel("Amount held (normalized by income)")
+    ax.legend(loc="upper left")
+    ax.set_xlim(tb, td)
+    ax.set_ylim(bottom=0)
+    fig.tight_layout()
+    composition_uri = _fig_to_uri(fig)
+
+    return {
+        "lifecycle": lifecycle_uri,
+        "policy": policy_uri,
+        "composition": composition_uri,
+    }
