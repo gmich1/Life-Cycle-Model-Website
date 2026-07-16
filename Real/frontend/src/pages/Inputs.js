@@ -194,20 +194,23 @@ function Inputs() {
         <p>Set the model parameters below and run the simulation.</p>
       </div>
 
-      <div className="preset-bar" role="group" aria-label="Persona presets">
-        {PRESETS.map((p) => (
-          <button
-            type="button"
-            key={p.id}
-            className={`preset-pill${p.id === activePreset ? ' active' : ''}`}
-            aria-pressed={p.id === activePreset}
-            onClick={() => setActivePreset(p.id)}
-          >
-            <span className="preset-label">{p.label}</span>
-            <span className="preset-subtitle">{p.subtitle}</span>
-          </button>
-        ))}
-      </div>
+      <fieldset className="field-group">
+        <legend>Data Presets</legend>
+        <div className="preset-grid" role="group" aria-label="Persona presets">
+          {PRESETS.map((p) => (
+            <button
+              type="button"
+              key={p.id}
+              className={`preset-pill${p.id === activePreset ? ' active' : ''}`}
+              aria-pressed={p.id === activePreset}
+              onClick={() => setActivePreset(p.id)}
+            >
+              <span className="preset-label">{p.label}</span>
+              <span className="preset-subtitle">{p.subtitle}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
 
       <form key={activePreset} method="post" onSubmit={handleSubmit}>
         {GROUPS.map((g) => {
