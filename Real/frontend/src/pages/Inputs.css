@@ -57,7 +57,7 @@
 
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 1rem 1.5rem;
   align-items: start;
   margin-top: 0.75rem;
@@ -253,7 +253,7 @@
    the pills filling their cell keeps every cell the same height too. */
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
   grid-auto-rows: 1fr;
   gap: 0.75rem;
   margin-top: 0.75rem;
