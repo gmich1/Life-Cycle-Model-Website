@@ -258,7 +258,7 @@ function Inputs() {
               <img src={charts.policy}
                    alt="Policy functions: optimal consumption and stock share versus cash-on-hand at ages 25, 45 and 65" />
             </figure>
-            <figure className="chart">
+            <figure className="chart chart-compact">
               <img src={charts.composition}
                    alt="Portfolio composition by age: stock and bond holdings stacked to show the split of savings at each age" />
             </figure>

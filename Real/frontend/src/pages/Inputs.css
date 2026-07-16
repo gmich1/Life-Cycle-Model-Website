@@ -205,6 +205,10 @@
   width: 100%;
   height: auto;
 }
+/* The composition figure sits at two-thirds of the other figures' width. */
+.chart-compact {
+  width: calc(80% * 2 / 3);
+}
 .table-wrap {
   overflow-x: auto;
   overflow-y: hidden;
