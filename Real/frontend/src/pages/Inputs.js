@@ -83,6 +83,37 @@ const LABELS = {
   meanWY: 'Wealth / income',
 }
 
+// Persona presets. Each `values` entry overrides a FIELDS default by name;
+// any field not listed keeps its default. Only the three education-showcase
+// personas (finance, bluecollar, doctor) override the income polynomial
+// aa/b1/b2/b3. Values come from the design spec §4 and §4.3.
+const PRESETS = [
+  { id: 'default', label: 'Default',
+    subtitle: 'Generally-applicable baseline settings',
+    values: {} },
+  { id: 'public', label: 'Public-sector lifer',
+    subtitle: 'Stable, market-independent income; generous pension',
+    values: { tb: 22, tr: 66, rho: 12, delta: 0.98, psi: 0.5, smay: 0.15, smav: 0.09, corr_v: 0, ret_fac: 0.85 } },
+  { id: 'finance', label: 'Finance professional',
+    subtitle: 'High pay that rides the stock market',
+    values: { tb: 24, tr: 62, rho: 6, delta: 0.95, psi: 0.6, smay: 0.242, smav: 0.130, corr_v: 0.52, ret_fac: 0.45,
+              aa: -1.9317, b1: 0.3194, b2: -0.00577, b3: 3.3e-5 } },
+  { id: 'entrepreneur', label: 'Entrepreneur',
+    subtitle: 'Volatile self-employment income; no pension',
+    values: { tb: 26, tr: 68, rho: 6, delta: 0.94, psi: 0.7, smay: 0.30, smav: 0.18, corr_v: 0.30, ret_fac: 0.35 } },
+  { id: 'bluecollar', label: 'Blue-collar (trades)',
+    subtitle: 'Early start, cyclical manual work',
+    values: { tb: 20, tr: 63, rho: 10, delta: 0.96, psi: 0.4, smay: 0.325, smav: 0.102, corr_v: 0.328, ret_fac: 0.60,
+              aa: 0.4914, b1: 0.1684, b2: -0.00353, b3: 2.3e-5 } },
+  { id: 'doctor', label: 'Doctor',
+    subtitle: 'Late start, high and recession-proof income',
+    values: { tb: 30, tr: 67, rho: 8, delta: 0.98, psi: 0.5, smay: 0.242, smav: 0.130, corr_v: 0.10, ret_fac: 0.55,
+              aa: -1.9317, b1: 0.3194, b2: -0.00577, b3: 3.3e-5 } },
+  { id: 'gig', label: 'Gig / precarious',
+    subtitle: 'Insecure, spiky income; minimal safety net',
+    values: { tb: 20, tr: 68, rho: 13, delta: 0.95, psi: 0.4, smay: 0.35, smav: 0.11, corr_v: 0.20, ret_fac: 0.30 } },
+]
+
 function Inputs() {
   const [result, setResult] = useState(null)
   const [charts, setCharts] = useState(null)
@@ -90,6 +121,8 @@ function Inputs() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [activePreset, setActivePreset] = useState('default')
+  const active = PRESETS.find((p) => p.id === activePreset) || PRESETS[0]
 
   // Expected solve time. The bar fills over this window and then holds at
   // 99% until the real result arrives (the run may finish sooner or later).
@@ -161,7 +194,22 @@ function Inputs() {
         <p>Set the model parameters below and run the simulation.</p>
       </div>
 
-      <form method="post" onSubmit={handleSubmit}>
+      <div className="preset-bar" role="group" aria-label="Persona presets">
+        {PRESETS.map((p) => (
+          <button
+            type="button"
+            key={p.id}
+            className={`preset-pill${p.id === activePreset ? ' active' : ''}`}
+            aria-pressed={p.id === activePreset}
+            onClick={() => setActivePreset(p.id)}
+          >
+            <span className="preset-label">{p.label}</span>
+            <span className="preset-subtitle">{p.subtitle}</span>
+          </button>
+        ))}
+      </div>
+
+      <form key={activePreset} method="post" onSubmit={handleSubmit}>
         {GROUPS.map((g) => {
           // Merge consecutive fields sharing a `combo` id into one block so
           // they stack together under a single shared description.
@@ -184,7 +232,7 @@ function Inputs() {
               type="number"
               step="any"
               name={f.name}
-              defaultValue={f.def}
+              defaultValue={active.values[f.name] ?? f.def}
             />
           )
 
