@@ -45,3 +45,15 @@ test('switching from Doctor to Public-sector resets the income polynomial', () =
   fireEvent.click(screen.getByRole('button', { name: /Public-sector lifer/ }))
   expect(screen.getByLabelText('Income intercept')).toHaveValue(0.530339)
 })
+
+test('selecting Blue-collar (trades) populates the No-HS income polynomial', () => {
+  render(<Inputs />)
+  fireEvent.click(screen.getByRole('button', { name: /Blue-collar/ }))
+  expect(screen.getByLabelText('Retirement age (years)')).toHaveValue(63)
+  expect(screen.getByLabelText('Standard dev transitory income (σ_u)')).toHaveValue(0.325)
+  expect(screen.getByLabelText('Corr(perm income, returns)')).toHaveValue(0.328)
+  expect(screen.getByLabelText('Income intercept')).toHaveValue(0.4914)
+  expect(screen.getByLabelText('Income age coefficient')).toHaveValue(0.1684)
+  expect(screen.getByLabelText('Income age² coefficient')).toHaveValue(-0.00353)
+  expect(screen.getByLabelText('Income age³ coefficient')).toHaveValue(2.3e-5)
+})
