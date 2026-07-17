@@ -117,7 +117,6 @@ const PRESETS = [
 function Inputs() {
   const [result, setResult] = useState(null)
   const [charts, setCharts] = useState(null)
-  const [bandCoverage, setBandCoverage] = useState(95)
   const [startAge, setStartAge] = useState(20)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -170,7 +169,6 @@ function Inputs() {
       setStartAge(params.tb || 20)   // label table rows by real age
       setProgress(100)
       setCharts(data.charts)
-      if (data.bandCoverage) setBandCoverage(data.bandCoverage)
       // Share the freshly-generated figures with the static algorithm-detail
       // pages (same origin) so they show this run's charts instead of their
       // frozen defaults. Their inline scripts read this on load.
@@ -313,7 +311,7 @@ function Inputs() {
             </figure>
             <figure className="chart chart-compact">
               <img src={charts.composition}
-                   alt={`Portfolio composition by age: mean stock and bond holdings, each with a ${bandCoverage}% band showing the spread across households`} />
+                   alt="Portfolio composition by age: mean stock and bond holdings, each with a 95% band showing the spread across households" />
             </figure>
           </div>
         </div>
