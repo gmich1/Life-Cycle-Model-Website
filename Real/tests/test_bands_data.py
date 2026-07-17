@@ -7,7 +7,7 @@ import numpy as np
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "api", "_model")
 sys.path.insert(0, MODEL_DIR)
 
-from solver import solve_model, simulate, BAND_COVERAGE  # noqa: E402
+from solver import solve_model, simulate, BAND_SIGMAS  # noqa: E402
 
 # Small grids so the solve is fast; behaviour is identical to full size.
 SMALL = dict(
@@ -21,7 +21,7 @@ EXPECTED = {"C", "W", "Y", "alpha", "S", "B", "Cs", "Ws", "Ys"}
 
 
 def main():
-    assert BAND_COVERAGE == 0.95, BAND_COVERAGE
+    assert BAND_SIGMAS == 1.0, BAND_SIGMAS
 
     params, grids, survprob, income, C, A, V = solve_model(SMALL)
     sim = simulate(params, grids, survprob, income, C, A)
@@ -30,14 +30,32 @@ def main():
     assert "bands" in sim, "sim must include a 'bands' key"
     assert set(sim["bands"]) == EXPECTED, sorted(sim["bands"])
 
-    for key, band in sim["bands"].items():
-        assert band["lo"].shape == (tn,), (key, band["lo"].shape)
-        assert band["hi"].shape == (tn,), (key, band["hi"].shape)
-        assert np.all(band["lo"] <= band["hi"] + 1e-9), f"lo>hi for {key}"
+    means = {
+        "C": sim["meanC"], "W": sim["meanW"], "Y": sim["meanY"],
+        "alpha": sim["meanalpha"], "S": sim["meanS"], "B": sim["meanB"],
+        "Cs": sim["meanCs"], "Ws": sim["meanWs"], "Ys": sim["meanYs"],
+    }
 
-    # Non-negative quantities never dip below zero.
-    for key in ("W", "S", "B"):
-        assert np.all(sim["bands"][key]["lo"] >= -1e-9), f"negative lo for {key}"
+    for key, band in sim["bands"].items():
+        lo, hi, m = band["lo"], band["hi"], means[key]
+        assert lo.shape == (tn,) and hi.shape == (tn,), (key, lo.shape, hi.shape)
+        assert np.all(lo >= -1e-9), f"negative lo for {key}"      # clamped at 0
+        assert np.all(lo <= m + 1e-9), f"lo>mean for {key}"
+        assert np.all(hi >= m - 1e-9), f"hi<mean for {key}"
+
+    # Stock share band stays within [0, 1].
+    a = sim["bands"]["alpha"]
+    assert np.all(a["hi"] <= 1.0 + 1e-9), "alpha hi>1"
+    assert np.all(a["lo"] >= -1e-9), "alpha lo<0"
+
+    # Symmetric mean +/- k*sd, then lower edge clamped at 0, implies
+    #   lo == max(0, 2*mean - hi)
+    # for every series whose hi is NOT capped (all but alpha). This verifies
+    # the symmetry and the clamp without needing the per-path std.
+    for key in ("C", "W", "Y", "S", "B", "Cs", "Ws", "Ys"):
+        lo, hi, m = sim["bands"][key]["lo"], sim["bands"][key]["hi"], means[key]
+        expected_lo = np.maximum(2.0 * m - hi, 0.0)
+        assert np.allclose(lo, expected_lo, atol=1e-9), f"clamp/symmetry mismatch for {key}"
 
     # The results-table JSON (built like run.py) must exclude bands.
     table = {k: v.tolist() for k, v in sim.items() if k != "bands"}

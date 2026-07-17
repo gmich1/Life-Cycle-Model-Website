@@ -26,7 +26,7 @@ def _is_png(uri):
 
 def main():
     # The coverage note is derived from the constant, not hard-coded.
-    assert _band_note() == "Shaded = central 95% of simulated households", _band_note()
+    assert _band_note() == "Shaded = within 1 standard deviation of the mean (clamped to feasible values)", _band_note()
 
     params, grids, survprob, income, C, A, V = solve_model(SMALL)
     sim = simulate(params, grids, survprob, income, C, A)

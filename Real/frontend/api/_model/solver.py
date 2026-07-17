@@ -6,10 +6,10 @@ Vectorized with NumPy for performance.
 import numpy as np
 from model import build_params, build_grids, build_survival_probs, build_income
 
-# Central coverage of the uncertainty bands drawn on the simulated charts.
-# Single source of truth: drives both the percentile math (here) and the
-# chart labels (plots.py imports this). E.g. 0.95 -> 2.5th to 97.5th pct.
-BAND_COVERAGE = 0.95
+# Width of the uncertainty bands drawn on the simulated charts, in standard
+# deviations. Single source of truth: drives both the band math (here) and the
+# chart labels (plots.py imports this). E.g. 1.0 -> mean +/- 1 sigma.
+BAND_SIGMAS = 1.0
 
 # ---------------------------------------------------------------------------
 # Spline functions (exact translation of f_spline.m and f_sc_splint.m)
@@ -557,22 +557,28 @@ def simulate(params, grids, survprob, income, C, A, seed=42):
     meanWs = meanW * cGPY
     meanYs = meanY * cGPY
 
-    # --- Percentile bands across paths (central BAND_COVERAGE coverage) ---
-    lo_pct = 100.0 * (1.0 - BAND_COVERAGE) / 2.0     # e.g. 2.5
-    hi_pct = 100.0 * (1.0 + BAND_COVERAGE) / 2.0     # e.g. 97.5
-
-    def _band(arr):
-        return {
-            'lo': np.percentile(arr, lo_pct, axis=1),
-            'hi': np.percentile(arr, hi_pct, axis=1),
-        }
+    # --- Bands: mean +/- BAND_SIGMAS standard deviations across paths ---
+    # Lower edge clamped to 0 (all quantities are >= 0 in the model: the
+    # no-borrowing constraint keeps wealth, consumption, income, stocks and
+    # bonds non-negative); the stock share additionally caps its upper edge at
+    # 1. Where clamping bites (young ages, share near its bounds) the drawn arm
+    # is shorter than a full sigma, so the band is asymmetric there and not
+    # literally +/-1 sigma on the clamped side.
+    def _band(arr, hi_cap=None):
+        m = arr.mean(axis=1)
+        sd = arr.std(axis=1)
+        lo = np.maximum(m - BAND_SIGMAS * sd, 0.0)
+        hi = m + BAND_SIGMAS * sd
+        if hi_cap is not None:
+            hi = np.minimum(hi, hi_cap)
+        return {'lo': lo, 'hi': hi}
 
     bands = {
         'C': _band(simC), 'W': _band(simW), 'Y': _band(simY),
-        'alpha': _band(simA), 'S': _band(simS), 'B': _band(simB),
+        'alpha': _band(simA, hi_cap=1.0), 'S': _band(simS), 'B': _band(simB),
     }
-    # Scaled series are mean*cGPY; cGPY is a positive deterministic factor,
-    # so the scaled band is just the level band scaled by the same vector.
+    # Scaled series are mean*cGPY; cGPY is a positive deterministic factor, so
+    # the scaled band is just the (already clamped) level band scaled by it.
     bands['Cs'] = {'lo': bands['C']['lo'] * cGPY, 'hi': bands['C']['hi'] * cGPY}
     bands['Ws'] = {'lo': bands['W']['lo'] * cGPY, 'hi': bands['W']['hi'] * cGPY}
     bands['Ys'] = {'lo': bands['Y']['lo'] * cGPY, 'hi': bands['Y']['hi'] * cGPY}

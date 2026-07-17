@@ -19,7 +19,7 @@ import matplotlib
 matplotlib.use("Agg")  # must be set before importing pyplot
 import matplotlib.pyplot as plt  # noqa: E402
 
-from solver import BAND_COVERAGE  # noqa: E402  (single source of truth)
+from solver import BAND_SIGMAS  # noqa: E402  (single source of truth)
 
 
 def _fig_to_uri(fig):
@@ -39,9 +39,10 @@ def _policy_ages(tb, td):
 
 
 def _band_note():
-    """Caption describing the shaded band, driven by BAND_COVERAGE."""
-    pct = int(round(BAND_COVERAGE * 100))
-    return f"Shaded = central {pct}% of simulated households"
+    """Caption describing the shaded band, driven by BAND_SIGMAS."""
+    n = BAND_SIGMAS
+    unit = "standard deviation" + ("" if n == 1 else "s")
+    return f"Shaded = within {n:g} {unit} of the mean (clamped to feasible values)"
 
 
 def make_charts(params, grids, sim, C, A):
