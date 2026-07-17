@@ -30,39 +30,71 @@ three kinds:
 - **Ratios / growth factors** (`meanalpha`, `meanGPY`, `cGPY`, `meanWY`) —
   dimensionless; never denominated in currency.
 
-Only the **scaled** quantities become literal real money when multiplied by the
-starting salary `S`. Multiplying a *normalized* level by `S` would give "money
-in starting-salary units" (flat income every year) — not tangible currency.
-This design therefore converts to **true real money** (the option chosen during
-brainstorming), never a flat multiply.
+Real money for any of these levels is `normalized × cGPY × salary` — the `cGPY`
+factor re-introduces the permanent-income growth that was divided out.
+Multiplying a normalized level by `S` *alone* (skipping `cGPY`) would give
+"money in starting-salary units" (flat income every year), not tangible
+currency. This design therefore always applies the full `× cGPY × salary`
+(the **true real money** option chosen during brainstorming), never a flat
+multiply. Consumption/wealth/income simply already have `normalized × cGPY`
+precomputed as the scaled series, so for them it *looks like* a plain `× salary`.
 
-## Key decision: true real money
+## Key decision: true real money — one rule for all five
 
-With starting salary `S` (in the chosen currency) and the per-age `cGPY[i]`
-factor the app already computes, the five money quantities are shown as:
+There is a **single conversion**, applied to every money quantity:
 
-| Quantity | Real-money value | Source series |
+```
+real money = normalized mean × cGPY × salary
+```
+
+Consumption, wealth and income have `normalized × cGPY` **already precomputed**
+by the backend as the "scaled" series (`meanCs`/`meanWs`/`meanYs`), so for them
+it reduces to `scaled × salary`. Stocks and bonds have no precomputed scaled
+series, so the `× cGPY` is applied inline. It is the **same rule** either way —
+not two different conversions, and not a "scaled vs normalized" split.
+
+| Quantity | Real-money value | where `× cGPY` comes from |
 |---|---|---|
-| Consumption | `meanCs[i] × S`          | scaled |
-| Wealth      | `meanWs[i] × S`          | scaled |
-| Income      | `meanYs[i] × S`          | scaled |
-| Stocks      | `meanS[i] × cGPY[i] × S` | normalized × cGPY |
-| Bonds       | `meanB[i] × cGPY[i] × S` | normalized × cGPY |
+| Consumption | `meanCs[i] × S` = `meanC[i] × cGPY[i] × S` | precomputed (`meanCs`) |
+| Wealth      | `meanWs[i] × S` = `meanW[i] × cGPY[i] × S` | precomputed (`meanWs`) |
+| Income      | `meanYs[i] × S` = `meanY[i] × cGPY[i] × S` | precomputed (`meanYs`) |
+| Stocks      | `meanS[i] × cGPY[i] × S`                   | inline |
+| Bonds       | `meanB[i] × cGPY[i] × S`                   | inline |
 
-All five formulas are mutually consistent: they use the **same** `cGPY` the app
-already uses to define its scaled series (`meanCs = meanC × cGPY`, etc.), so
-`Stocks = meanS × cGPY × S` is on the same footing as
-`Consumption = meanCs × S = meanC × cGPY × S`.
+Verified against `solver.py`: the scaled series are literally `normalized ×
+cGPY` (`meanCs = meanC * cGPY`, lines 556–558), stocks/bonds exist only
+normalized (`meanS`, `meanB`, lines 545–546), and `cGPY` is in the API output —
+so computing `meanS × cGPY` inline reaches nothing outside the results and the
+**frontend-only** claim holds.
 
-`cGPY` is the app's existing additive cumulative-growth approximation
-(`cGPY[i] = cGPY[i-1] + (meanGPY[i] − 1)`); reusing it keeps every currency
-figure consistent with the existing scaled series and the chart's
-"Scaled by age-20 income" panel.
+Empirical check (default parameters): at age 45 `meanS + meanB ≈ 9.4` tracks
+*normalized* wealth (9.3), **not** scaled wealth (18.8); `9.4 × cGPY(2.02) ≈ 19`
+recovers the scaled figure — confirming cumulative growth is genuinely absent
+from stocks/bonds, so the inline `× cGPY` is required, not an over-correction.
 
 The dimensionless quantities — stock share, wealth/income, permanent-income
 growth, cumulative growth — and the plain normalized consumption / wealth /
-income are **never** given a currency symbol; they keep their current
-normalized display.
+income are **never** given a currency symbol; they keep their current display.
+
+## Caveat: `cGPY` is accumulated additively (pre-existing, inherited unchanged)
+
+`cGPY` is built **additively**, not as a true multiplicative cumulative product:
+
+```
+cGPY[i] = cGPY[i-1] + (meanGPY[i] − 1)      # solver.py lines 551–554
+```
+
+This is the app's existing definition of "Cumulative growth"; it already drives
+the scaled series and the chart's "Scaled by age-20 income" panel. The currency
+feature **inherits it unchanged**, so the real-money figures stay exactly
+consistent with the scaled values already on screen. It introduces **no new
+approximation**.
+
+Flagged only for the record: if the real-money hump is ever assessed for
+quantitative *faithfulness* (rather than internal consistency), this additive
+accumulation — not the currency conversion — is the thing to scrutinise. Fixing
+it would also move the existing scaled columns, so it is deliberately **out of
+scope** here.
 
 ## Frontend-only
 
