@@ -78,7 +78,7 @@ def make_charts(params, grids, sim, C, A):
     fig.tight_layout()
     policy_uri = _fig_to_uri(fig)
 
-    # ---- Figure 2: life-cycle profiles (with percentile bands) ----
+    # ---- Figure 2: life-cycle profiles (with +/-1 SD bands) ----
     ages = np.arange(tb, td + 1)
     bands = sim["bands"]
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
@@ -128,7 +128,7 @@ def make_charts(params, grids, sim, C, A):
     lifecycle_uri = _fig_to_uri(fig)
 
     # ---- Figure 3: portfolio composition (stocks & bonds, each banded) ----
-    # Unstacked so each holding can carry its own percentile band.
+    # Unstacked so each holding can carry its own +/-1 SD band.
     fig, ax = plt.subplots(figsize=(10, 5))
 
     ax.fill_between(ages, bands["S"]["lo"], bands["S"]["hi"],
