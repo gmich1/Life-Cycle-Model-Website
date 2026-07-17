@@ -96,6 +96,39 @@ accumulation — not the currency conversion — is the thing to scrutinise. Fix
 it would also move the existing scaled columns, so it is deliberately **out of
 scope** here.
 
+### Fork explicitly decided: keep additive
+
+The additive-vs-multiplicative choice was surfaced and decided before
+implementation, not left unexamined. The gap is material — additive `cGPY`
+understates a true `cumprod(meanGPY)` product by roughly:
+
+| age | additive `cGPY` | true product | product higher by |
+|----:|----:|----:|----:|
+| 30 | 1.61 | 1.81 | +12% |
+| 50 | 2.06 | 2.82 | +37% |
+| 66+ | 2.17 | 3.13 | +44% |
+
+(The true product also correctly rises above the deterministic income hump
+`f_y[t]/f_y[20]`, reflecting the upward drift of expected permanent income under
+lognormal shocks.)
+
+Three options were considered:
+
+- **A — keep additive (chosen).** Currency rides on the existing `cGPY`. Hump is
+  understated, but the currency figures stay consistent with the scaled columns
+  **and the (additive, out-of-scope) charts**, faithful to the bit-for-bit
+  MATLAB reproduction, and frontend-only.
+- **B — fix `cGPY` to a true product globally.** Accurate everywhere but a
+  backend change that diverges from the reproduction and moves the charts/bands.
+- **C — accurate currency only (frontend `cumprod(meanGPY)`).** Accurate and
+  frontend-only, but the currency table would then disagree with the still-
+  additive charts and none-mode scaled columns.
+
+**A** was chosen: a display feature should not silently redefine the model's
+cumulative-growth (C) or break the reproduction (B). Making `cGPY` multiplicative
+remains a separate, deliberate decision (best done as B, charts included) if
+quantitative real-money faithfulness is ever wanted.
+
 ## Frontend-only
 
 The API already returns every series this needs (`meanCs`, `meanWs`, `meanYs`,
