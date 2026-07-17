@@ -14,7 +14,7 @@ from http.server import BaseHTTPRequestHandler
 # (solver.py does `from model import ...`) without editing those files.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "_model"))
 
-from solver import solve_model, simulate  # noqa: E402
+from solver import solve_model, simulate, BAND_COVERAGE  # noqa: E402
 from plots import make_charts  # noqa: E402
 
 # Parameters the form is expected to send (matches the frontend FIELDS list).
@@ -53,6 +53,9 @@ def _run_model(inputs):
     return {
         "sim": {key: value.tolist() for key, value in sim.items() if key != "bands"},
         "charts": charts,
+        # Band coverage as a whole-number percent, so the frontend's chart
+        # captions track BAND_COVERAGE too (single source of truth).
+        "bandCoverage": int(round(BAND_COVERAGE * 100)),
     }
 
 
