@@ -311,7 +311,7 @@ function Inputs() {
             </figure>
             <figure className="chart chart-compact">
               <img src={charts.composition}
-                   alt="Portfolio composition by age: stock and bond holdings stacked to show the split of savings at each age" />
+                   alt="Portfolio composition by age: mean stock and bond holdings, each with a 95% band showing the spread across households" />
             </figure>
           </div>
         </div>

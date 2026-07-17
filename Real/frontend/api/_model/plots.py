@@ -19,6 +19,8 @@ import matplotlib
 matplotlib.use("Agg")  # must be set before importing pyplot
 import matplotlib.pyplot as plt  # noqa: E402
 
+from solver import BAND_COVERAGE  # noqa: E402  (single source of truth)
+
 
 def _fig_to_uri(fig):
     """Serialise a Matplotlib figure to a base64 PNG data URI."""
@@ -34,6 +36,12 @@ def _policy_ages(tb, td):
     if not ages:
         ages = sorted({tb, (tb + td) // 2, max(tb, td - 1)})
     return ages
+
+
+def _band_note():
+    """Caption describing the shaded band, driven by BAND_COVERAGE."""
+    pct = int(round(BAND_COVERAGE * 100))
+    return f"Shaded = central {pct}% of simulated households"
 
 
 def make_charts(params, grids, sim, C, A):
@@ -69,57 +77,77 @@ def make_charts(params, grids, sim, C, A):
     fig.tight_layout()
     policy_uri = _fig_to_uri(fig)
 
-    # ---- Figure 2: life-cycle profiles ----
+    # ---- Figure 2: life-cycle profiles (with percentile bands) ----
     ages = np.arange(tb, td + 1)
+    bands = sim["bands"]
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
+    # Panel 1: consumption / wealth / income (levels)
     ax = axes[0]
-    ax.plot(ages, sim["meanC"], "r-", linewidth=2, label="Consumption")
-    ax.plot(ages, sim["meanW"], "b--", linewidth=2, label="Wealth")
-    ax.plot(ages, sim["meanY"], "k:", linewidth=2, label="Income")
+    for key, color, style, lab in (("C", "red", "-", "Consumption"),
+                                   ("W", "blue", "--", "Wealth"),
+                                   ("Y", "black", ":", "Income")):
+        ax.fill_between(ages, bands[key]["lo"], bands[key]["hi"],
+                        color=color, alpha=0.15, linewidth=0)
+        ax.plot(ages, sim["mean" + key], color=color, linestyle=style,
+                linewidth=2, label=lab)
     ax.set_title("Life-Cycle Profiles (normalized)")
     ax.set_xlabel("Age")
     ax.legend()
     ax.set_xlim(tb, td)
 
+    # Panel 2: average stock share
     ax = axes[1]
-    ax.plot(ages, sim["meanalpha"], "b-", linewidth=2)
+    ax.fill_between(ages, bands["alpha"]["lo"], bands["alpha"]["hi"],
+                    color="blue", alpha=0.15, linewidth=0)
+    ax.plot(ages, sim["meanalpha"], color="blue", linewidth=2)
     ax.set_title("Average Stock Share")
     ax.set_xlabel("Age")
     ax.set_ylabel("Share in stocks")
     ax.set_xlim(tb, td)
     ax.set_ylim(0, 1.1)
 
+    # Panel 3: scaled by age-20 income
     ax = axes[2]
-    ax.plot(ages, sim["meanCs"], "r-", linewidth=2, label="Consumption")
-    ax.plot(ages, sim["meanWs"], "b--", linewidth=2, label="Wealth")
-    ax.plot(ages, sim["meanYs"], "k:", linewidth=2, label="Income")
+    for key, color, style, lab in (("Cs", "red", "-", "Consumption"),
+                                   ("Ws", "blue", "--", "Wealth"),
+                                   ("Ys", "black", ":", "Income")):
+        ax.fill_between(ages, bands[key]["lo"], bands[key]["hi"],
+                        color=color, alpha=0.15, linewidth=0)
+        ax.plot(ages, sim["mean" + key], color=color, linestyle=style,
+                linewidth=2, label=lab)
     ax.set_title("Scaled by Age-20 Income")
     ax.set_xlabel("Age")
     ax.legend()
     ax.set_xlim(tb, td)
 
+    fig.text(0.5, -0.01, _band_note(), ha="center", va="top",
+             fontsize=9, style="italic")
     fig.tight_layout()
     lifecycle_uri = _fig_to_uri(fig)
 
-    # ---- Figure 3: portfolio composition (stocks vs bonds, stacked) ----
-    # meanS and meanB are the stock and bond holdings behind meanalpha, so
-    # stacking them shows the actual split of savings at each age rather than
-    # just the share. Both are non-negative and sum to total savings.
+    # ---- Figure 3: portfolio composition (stocks & bonds, each banded) ----
+    # Unstacked so each holding can carry its own percentile band.
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.stackplot(
-        ages,
-        np.asarray(sim["meanS"]),
-        np.asarray(sim["meanB"]),
-        labels=["Stocks", "Bonds"],
-        colors=["#003E74", "#9ecae1"],
-    )
+
+    ax.fill_between(ages, bands["S"]["lo"], bands["S"]["hi"],
+                    color="#003E74", alpha=0.15, linewidth=0)
+    ax.plot(ages, np.asarray(sim["meanS"]), color="#003E74",
+            linewidth=2, label="Stocks")
+
+    ax.fill_between(ages, bands["B"]["lo"], bands["B"]["hi"],
+                    color="#9ecae1", alpha=0.30, linewidth=0)
+    ax.plot(ages, np.asarray(sim["meanB"]), color="#9ecae1",
+            linewidth=2, label="Bonds")
+
     ax.set_title("Portfolio Composition: Stocks vs Bonds")
     ax.set_xlabel("Age")
     ax.set_ylabel("Amount held (normalized by income)")
     ax.legend(loc="upper left")
     ax.set_xlim(tb, td)
     ax.set_ylim(bottom=0)
+    ax.text(0.99, 0.02, _band_note(), transform=ax.transAxes,
+            ha="right", va="bottom", fontsize=8, style="italic")
     fig.tight_layout()
     composition_uri = _fig_to_uri(fig)
 
