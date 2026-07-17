@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import './Inputs.css'
+import ResultsTable from './ResultsTable'
+import { CURRENCIES } from './currency'
 
 // Ordered groups rendered as boxes. Each field below names its group id.
 const GROUPS = [
@@ -66,23 +68,6 @@ const FIELDS = [
     desc: 'How many pretend "life stories" the model runs to see how people typically end up. More lives give smoother, more reliable averages but take longer; 10,000 is enough for stable results.' },
 ]
 
-// Friendly column headers for the sim series. Any key not listed here
-// falls back to its raw name, so the table still works if you add series.
-const LABELS = {
-  meanC: 'Consumption',
-  meanW: 'Wealth',
-  meanY: 'Income',
-  meanGPY: 'Perm. income growth',
-  meanS: 'Stocks',
-  meanB: 'Bonds',
-  meanalpha: 'Stock share',
-  meanCs: 'Consumption (scaled)',
-  meanWs: 'Wealth (scaled)',
-  meanYs: 'Income (scaled)',
-  cGPY: 'Cumulative growth',
-  meanWY: 'Wealth / income',
-}
-
 // Persona presets. Each `values` entry overrides a FIELDS default by name;
 // any field not listed keeps its default. Only the three education-showcase
 // personas (finance, bluecollar, doctor) override the income polynomial
@@ -118,6 +103,8 @@ function Inputs() {
   const [result, setResult] = useState(null)
   const [charts, setCharts] = useState(null)
   const [startAge, setStartAge] = useState(20)
+  const [currency, setCurrency] = useState('none')
+  const [salary, setSalary] = useState('1')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -265,6 +252,43 @@ function Inputs() {
                   )
                 )}
               </div>
+              {g.id === 'incprofile' && (
+                <div className="field-grid">
+                  <div className="field">
+                    <label htmlFor="currency">Currency</label>
+                    <select
+                      id="currency"
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                    >
+                      {CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>{c.label}</option>
+                      ))}
+                    </select>
+                    <div className="field-desc">
+                      The currency your salary is paid in. Choose 'None (units)'
+                      to keep results in the model's normalized units (multiples
+                      of income) — the default.
+                    </div>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="salary">Starting annual salary</label>
+                    <input
+                      id="salary"
+                      type="number"
+                      step="any"
+                      value={salary}
+                      onChange={(e) => setSalary(e.target.value)}
+                    />
+                    <div className="field-desc">
+                      Your annual pay at the starting age. Enter it in the
+                      currency chosen above to see your results as real money
+                      instead of multiples of income. If you're unsure, set
+                      Currency to 'None (units)' and leave this at 1.
+                    </div>
+                  </div>
+                </div>
+              )}
             </fieldset>
           )
         })}
@@ -320,28 +344,16 @@ function Inputs() {
       {result && (
         <div className="results">
           <h3>The Life Cycle Model Quantified</h3>
-          <div className="table-wrap">
-            <table className="results-table">
-              <thead>
-                <tr>
-                  <th>Age</th>
-                  {Object.keys(result).map((key) => (
-                    <th key={key}>{LABELS[key] || key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result[Object.keys(result)[0]].map((_, i) => (
-                  <tr key={i}>
-                    <td>{startAge + i}</td>
-                    {Object.keys(result).map((key) => (
-                      <td key={key}>{result[key][i].toFixed(4)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ResultsTable
+            result={result}
+            startAge={startAge}
+            currency={currency}
+            salary={
+              Number.isFinite(Number(salary)) && Number(salary) > 0
+                ? Number(salary)
+                : 1
+            }
+          />
         </div>
       )}
     </div>

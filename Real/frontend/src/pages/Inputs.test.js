@@ -57,3 +57,13 @@ test('selecting Blue-collar (trades) populates the No-HS income polynomial', () 
   expect(screen.getByLabelText('Income age² coefficient')).toHaveValue(-0.00353)
   expect(screen.getByLabelText('Income age³ coefficient')).toHaveValue(2.3e-5)
 })
+
+test('currency and salary controls render with defaults, excluded from POST (no name attr)', () => {
+  render(<Inputs />)
+  const currency = screen.getByLabelText('Currency')
+  const salary = screen.getByLabelText('Starting annual salary')
+  expect(currency).toHaveValue('none')
+  expect(salary).toHaveValue(1)
+  expect(currency).not.toHaveAttribute('name')
+  expect(salary).not.toHaveAttribute('name')
+})
