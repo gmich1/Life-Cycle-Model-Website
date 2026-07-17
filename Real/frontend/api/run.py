@@ -51,7 +51,7 @@ def _run_model(inputs):
     sim = simulate(params, grids, survprob, income, C, A)
     charts = make_charts(params, grids, sim, C, A)
     return {
-        "sim": {key: value.tolist() for key, value in sim.items()},
+        "sim": {key: value.tolist() for key, value in sim.items() if key != "bands"},
         "charts": charts,
     }
 
