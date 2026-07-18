@@ -20,7 +20,7 @@ function Inputs() {
         <p>Set the model parameters below and run the simulation.</p>
       </div>
 
-      <div className="instance-toggle" role="group" aria-label="Number of forms">
+      <div className="instance-toggle" role="group" aria-label="Number of instances">
         {[1, 2].map((n) => (
           <button
             key={n}
@@ -29,7 +29,7 @@ function Inputs() {
             aria-pressed={instances === n}
             onClick={() => setCount(n)}
           >
-            {n === 1 ? '1 form' : '2 forms'}
+            {n === 1 ? '1 Instance' : '2 Instances'}
           </button>
         ))}
       </div>

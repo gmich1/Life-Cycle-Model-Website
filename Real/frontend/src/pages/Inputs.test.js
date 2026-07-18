@@ -83,12 +83,12 @@ test('shows one form by default and no red panel', () => {
   const { container } = render(<Inputs />)
   expect(container.querySelectorAll('.sim-panel--blue').length).toBe(1)
   expect(container.querySelector('.sim-panel--red')).toBeNull()
-  expect(screen.getByRole('button', { name: '1 form' })).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.getByRole('button', { name: '1 Instance' })).toHaveAttribute('aria-pressed', 'true')
 })
 
-test('switching to 2 forms adds a red panel', () => {
+test('switching to 2 Instances adds a red panel', () => {
   const { container } = render(<Inputs />)
-  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  fireEvent.click(screen.getByRole('button', { name: '2 Instances' }))
   expect(container.querySelector('.sim-panel--red')).not.toBeNull()
   expect(container.querySelector('.sim-panel--red.sim-panel--hidden')).toBeNull()
 })
@@ -96,16 +96,16 @@ test('switching to 2 forms adds a red panel', () => {
 test('red panel is hidden but retained (state persists) after toggling 2 -> 1 -> 2', () => {
   const { container } = render(<Inputs />)
   // create the red panel and edit one of its inputs
-  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  fireEvent.click(screen.getByRole('button', { name: '2 Instances' }))
   // ids are now prefixed per-panel (#blue-tb / #red-tb); scope to the red panel
   const redPanel = container.querySelector('.sim-panel--red')
   const redTb = redPanel.querySelector('#red-tb')
   fireEvent.change(redTb, { target: { value: '41' } })
   // hide it
-  fireEvent.click(screen.getByRole('button', { name: '1 form' }))
+  fireEvent.click(screen.getByRole('button', { name: '1 Instance' }))
   expect(container.querySelector('.sim-panel--red.sim-panel--hidden')).not.toBeNull()
   // show again — the edited value survived (panel was hidden, not unmounted)
-  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  fireEvent.click(screen.getByRole('button', { name: '2 Instances' }))
   expect(container.querySelector('.sim-panel--red').querySelector('#red-tb')).toHaveValue(41)
 })
 
