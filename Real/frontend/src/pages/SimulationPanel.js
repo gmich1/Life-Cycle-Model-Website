@@ -220,7 +220,7 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
 
             const renderInput = (f) => (
               <input
-                id={f.name}
+                id={`${variant}-${f.name}`}
                 type="number"
                 step="any"
                 name={f.name}
@@ -237,7 +237,7 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
                       <div className="field field-combo" key={item.combo}>
                         {item.fields.map((f) => (
                           <div className="combo-row" key={f.name}>
-                            <label htmlFor={f.name}>{f.label}</label>
+                            <label htmlFor={`${variant}-${f.name}`}>{f.label}</label>
                             {renderInput(f)}
                           </div>
                         ))}
@@ -245,7 +245,7 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
                       </div>
                     ) : (
                       <div className="field" key={item.field.name}>
-                        <label htmlFor={item.field.name}>{item.field.label}</label>
+                        <label htmlFor={`${variant}-${item.field.name}`}>{item.field.label}</label>
                         {renderInput(item.field)}
                         {item.field.desc && (
                           <div className="field-desc">{item.field.desc}</div>
@@ -257,9 +257,9 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
                 {g.id === 'incprofile' && (
                   <div className="field-grid">
                     <div className="field">
-                      <label htmlFor="currency">Currency</label>
+                      <label htmlFor={`${variant}-currency`}>Currency</label>
                       <select
-                        id="currency"
+                        id={`${variant}-currency`}
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
                       >
@@ -274,9 +274,9 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
                       </div>
                     </div>
                     <div className="field">
-                      <label htmlFor="salary">Starting annual salary</label>
+                      <label htmlFor={`${variant}-salary`}>Starting annual salary</label>
                       <input
-                        id="salary"
+                        id={`${variant}-salary`}
                         type="number"
                         step="any"
                         value={salary}

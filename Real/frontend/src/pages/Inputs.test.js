@@ -97,16 +97,16 @@ test('red panel is hidden but retained (state persists) after toggling 2 -> 1 ->
   const { container } = render(<Inputs />)
   // create the red panel and edit one of its inputs
   fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
-  // two inputs share id #tb once both panels exist; scope to the red panel
+  // ids are now prefixed per-panel (#blue-tb / #red-tb); scope to the red panel
   const redPanel = container.querySelector('.sim-panel--red')
-  const redTb = redPanel.querySelector('#tb')
+  const redTb = redPanel.querySelector('#red-tb')
   fireEvent.change(redTb, { target: { value: '41' } })
   // hide it
   fireEvent.click(screen.getByRole('button', { name: '1 form' }))
   expect(container.querySelector('.sim-panel--red.sim-panel--hidden')).not.toBeNull()
   // show again — the edited value survived (panel was hidden, not unmounted)
   fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
-  expect(container.querySelector('.sim-panel--red').querySelector('#tb')).toHaveValue(41)
+  expect(container.querySelector('.sim-panel--red').querySelector('#red-tb')).toHaveValue(41)
 })
 
 test('blue panel detail links carry ?variant=blue', () => {
