@@ -78,3 +78,33 @@ test('blue variant applies the sim-panel--blue class', () => {
   const { container } = render(<SimulationPanel variant="blue" />)
   expect(container.querySelector('.sim-panel--blue')).not.toBeNull()
 })
+
+test('shows one form by default and no red panel', () => {
+  const { container } = render(<Inputs />)
+  expect(container.querySelectorAll('.sim-panel--blue').length).toBe(1)
+  expect(container.querySelector('.sim-panel--red')).toBeNull()
+  expect(screen.getByRole('button', { name: '1 form' })).toHaveAttribute('aria-pressed', 'true')
+})
+
+test('switching to 2 forms adds a red panel', () => {
+  const { container } = render(<Inputs />)
+  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  expect(container.querySelector('.sim-panel--red')).not.toBeNull()
+  expect(container.querySelector('.sim-panel--red.sim-panel--hidden')).toBeNull()
+})
+
+test('red panel is hidden but retained (state persists) after toggling 2 -> 1 -> 2', () => {
+  const { container } = render(<Inputs />)
+  // create the red panel and edit one of its inputs
+  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  // two inputs share id #tb once both panels exist; scope to the red panel
+  const redPanel = container.querySelector('.sim-panel--red')
+  const redTb = redPanel.querySelector('#tb')
+  fireEvent.change(redTb, { target: { value: '41' } })
+  // hide it
+  fireEvent.click(screen.getByRole('button', { name: '1 form' }))
+  expect(container.querySelector('.sim-panel--red.sim-panel--hidden')).not.toBeNull()
+  // show again — the edited value survived (panel was hidden, not unmounted)
+  fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
+  expect(container.querySelector('.sim-panel--red').querySelector('#tb')).toHaveValue(41)
+})

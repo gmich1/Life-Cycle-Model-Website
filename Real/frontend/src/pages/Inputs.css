@@ -312,3 +312,66 @@
 .sim-panel--red  .panel-form   { grid-area: red-form; }
 .sim-panel--red  .panel-charts { grid-area: red-charts; }
 .sim-panel--red  .panel-table  { grid-area: red-table; }
+
+/* Instance toggle */
+.instance-toggle {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 0 0 1.5rem;
+}
+.toggle-pill {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--imperial-blue);
+  background: #fff;
+  border: 1px solid var(--imperial-blue);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.toggle-pill.active {
+  background: var(--imperial-blue);
+  color: #fff;
+}
+
+/* Hidden (retained) panel */
+.sim-panel--hidden { display: none; }
+
+/* Two-instance compare layout. The grid breaks out of the 960px column so
+   two forms fit; the two table areas span both columns (full-width, stacked). */
+.compare-grid--two {
+  width: 96vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1.5rem;
+  grid-template-areas:
+    "blue-form   red-form"
+    "blue-charts red-charts"
+    "blue-table  blue-table"
+    "red-table   red-table";
+}
+/* Inside the compare grid the results must not do their single-mode 96vw
+   break-out; the grid areas control width instead. */
+.compare-grid--two .results {
+  width: auto;
+  left: auto;
+  transform: none;
+}
+
+/* Narrow screens: one column, band grouping preserved. */
+@media (max-width: 900px) {
+  .compare-grid--two {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "blue-form"
+      "red-form"
+      "blue-charts"
+      "red-charts"
+      "blue-table"
+      "red-table";
+  }
+}

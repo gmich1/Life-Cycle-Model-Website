@@ -99,7 +99,7 @@ const PRESETS = [
     values: { tb: 20, tr: 68, rho: 13, delta: 0.95, psi: 0.4, smay: 0.35, smav: 0.11, corr_v: 0.20, ret_fac: 0.30 } },
 ]
 
-function SimulationPanel({ variant = 'blue' }) {
+function SimulationPanel({ variant = 'blue', hidden = false }) {
   const [result, setResult] = useState(null)
   const [charts, setCharts] = useState(null)
   const [startAge, setStartAge] = useState(20)
@@ -175,7 +175,7 @@ function SimulationPanel({ variant = 'blue' }) {
   }
 
   return (
-    <div className={`sim-panel sim-panel--${variant}`}>
+    <div className={`sim-panel sim-panel--${variant}${hidden ? ' sim-panel--hidden' : ''}`}>
       <div className="panel-form">
         <fieldset className="field-group">
           <legend>Data Presets</legend>
