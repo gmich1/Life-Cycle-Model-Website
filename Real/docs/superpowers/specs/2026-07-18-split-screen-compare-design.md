@@ -28,10 +28,14 @@ scenarios can be configured and run at once and read against each other.
    results-table header, progress bar) from Imperial blue to red. The generated
    life-cycle **charts are left as the backend draws them** (matplotlib defaults,
    identical in both instances). No backend change.
-5. **Stack vertically on narrow screens.** Two columns on wide screens; on narrow
-   screens the instances stack (blue above red), reusing the existing
-   fit-to-screen grid behavior.
-6. **Per-instance detail pages.** Each instance's charts are stored and linked
+5. **Three-band layout.** Forms sit side by side, charts side by side beneath
+   them, and the **results tables are stacked full width — even on wide screens**
+   (two ~13-column tables cannot sit side by side). The stacked tables are told
+   apart by their color-coded header rows (blue vs red).
+6. **Stack fully on narrow screens.** On narrow screens all three bands collapse
+   to one column, stacking each instance fully (blue form/charts/table, then red),
+   reusing the existing fit-to-screen grid behavior.
+7. **Per-instance detail pages.** Each instance's charts are stored and linked
    separately, so one run never overwrites the other's detail page (see below).
 
 ## Architecture
@@ -48,10 +52,19 @@ container.
   `loading`, `progress`, `activePreset`). One new prop:
   - `variant`: `'blue'` (default) | `'red'`. Selects the theme class and the
     detail-page/localStorage variant.
-  Single responsibility: run one simulation.
+  Single responsibility: run one simulation. It stays self-contained — form,
+  charts, and results table (with its currency conversion) are all rendered by
+  this one component, so the currency/salary selectors keep driving the table
+  exactly as they do today. To let the container place those pieces into
+  different layout bands (see Layout), the panel's render is organised into three
+  area-tagged sections — `.panel-form`, `.panel-charts`, `.panel-table` — and the
+  panel wrapper uses `display: contents` so those sections become items of the
+  container's grid. (Custom-property inheritance still cascades through a
+  `display: contents` element, so the red variable override keeps working.)
 - **`src/pages/Inputs.js`** — becomes the container. It renders:
   - the **instance toggle** at the very top (above both panels), and
-  - a layout wrapper holding one or two `<SimulationPanel>`.
+  - a single CSS grid that lays the panels' sections out in three bands (see
+    Layout).
   `App.js` still mounts `<Inputs>`, so nothing upstream changes.
 
 ### Instance toggle
@@ -66,10 +79,11 @@ sets a container state value `instances` (`1` | `2`).
   the DOM contains exactly one form (keeps existing tests valid).
 - The first time the user selects `2 forms`, the red panel mounts.
 - Once mounted, the red panel is **never unmounted**; switching back to `1 form`
-  hides it with `display: none` on its column. Because it stays mounted, its
-  uncontrolled inputs and its React state persist across toggles.
-- Implementation: track a `redEverShown` flag; render the red column when
-  `instances === 2 || redEverShown`, and apply `hidden` styling when
+  hides it by setting its wrapper to `display: none` (which overrides the panel's
+  `display: contents`, removing all three of its sections from the grid at once).
+  Because it stays mounted, its uncontrolled inputs and React state persist.
+- Implementation: track a `redEverShown` flag; render the red panel when
+  `instances === 2 || redEverShown`, and hide it (`display: none`) when
   `instances === 1`.
 
 ## Red theming (CSS-variable override)
@@ -95,17 +109,54 @@ default keeps the current value. Charts are backend PNGs and are unaffected.
 
 ## Layout, scroll, and mobile
 
-- The container's layout wrapper is a CSS grid. In two-instance mode:
+Two-instance mode lays the two panels' sections out in **three bands** — forms
+side by side, charts side by side beneath them, and the results tables stacked
+full width. The tables stack **even on wide screens** (a single results table is
+already ~13 columns and breaks out to `96vw`; two side by side cannot fit). The
+tables are told apart by their **color-coded header rows** — blue panel's header
+is blue, red panel's is red (a free consequence of the variant override) — so no
+dividing line is needed.
+
+Wide-screen shape:
+
+```
+  [ BLUE form   ]   [ RED form   ]     ← forms band (2 columns)
+  [ BLUE charts ]   [ RED charts ]     ← charts band (2 columns)
+  [ BLUE table — full width, blue header ]   ← tables band (stacked,
+  [ RED  table — full width, red  header ]      full width)
+```
+
+- The container is one CSS grid using `grid-template-areas`. With the panels'
+  `display: contents` wrappers, each panel contributes `.panel-form`,
+  `.panel-charts`, `.panel-table` as grid items, assigned to named areas by
+  variant:
   ```css
-  grid-template-columns: repeat(auto-fit, minmax(min(480px, 100%), 1fr));
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "blue-form   red-form"
+      "blue-charts red-charts"
+      "blue-table  blue-table"
+      "red-table   red-table";
+  }
   ```
-  → two columns when the viewport is wide enough, one stacked column when narrow
-  (reuses the `min(…, 100%)` fit-to-screen fix already in the codebase). In
-  one-instance mode the wrapper is a single column.
-- Each panel keeps its internal `max-width` behavior; within a two-column layout
-  it fills its column.
-- Everything is in normal page flow → the page has a single scrollbar and both
-  instances scroll together. No scroll-sync code.
+  Section classes map to areas (`.panel-form.blue → blue-form`, `.panel-table.red
+  → red-table`, …). The two table areas span both columns, so tables are full
+  width and stacked.
+- **One-instance mode:** the grid is a single column and only the blue panel's
+  three sections show (`blue-form` / `blue-charts` / `blue-table`), i.e. exactly
+  today's layout — including the table's existing `96vw` break-out, which is kept
+  for single mode.
+- **Narrow screens (both modes):** a media query switches to a single-column
+  `grid-template-areas` that stacks each instance fully — blue form, blue charts,
+  blue table, then red form, red charts, red table — reusing the `min(…, 100%)`
+  fit-to-screen fix.
+- **Width:** two-instance mode widens the container beyond the single-mode
+  `960px` cap (to ~`96vw`) so two form columns fit; single mode keeps the `960px`
+  centered column unchanged.
+- Everything is in normal page flow → one page scrollbar, both instances scroll
+  together. No scroll-sync code.
 
 ## Per-instance detail pages
 
