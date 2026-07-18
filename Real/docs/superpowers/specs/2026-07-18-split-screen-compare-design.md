@@ -32,9 +32,10 @@ scenarios can be configured and run at once and read against each other.
    them, and the **results tables are stacked full width — even on wide screens**
    (two ~13-column tables cannot sit side by side). The stacked tables are told
    apart by their color-coded header rows (blue vs red).
-6. **Stack fully on narrow screens.** On narrow screens all three bands collapse
-   to one column, stacking each instance fully (blue form/charts/table, then red),
-   reusing the existing fit-to-screen grid behavior.
+6. **Collapse to one column on narrow screens.** All three bands collapse to a
+   single column while keeping the band grouping — blue form, red form, blue
+   charts, red charts, blue table, red table — reusing the existing fit-to-screen
+   grid behavior.
 7. **Per-instance detail pages.** Each instance's charts are stored and linked
    separately, so one run never overwrites the other's detail page (see below).
 
@@ -149,9 +150,15 @@ Wide-screen shape:
   today's layout — including the table's existing `96vw` break-out, which is kept
   for single mode.
 - **Narrow screens (both modes):** a media query switches to a single-column
-  `grid-template-areas` that stacks each instance fully — blue form, blue charts,
-  blue table, then red form, red charts, red table — reusing the `min(…, 100%)`
-  fit-to-screen fix.
+  `grid-template-areas` that keeps the band grouping — blue form, red form, blue
+  charts, red charts, blue table, red table:
+  ```css
+  grid-template-areas:
+    "blue-form" "red-form"
+    "blue-charts" "red-charts"
+    "blue-table" "red-table";
+  ```
+  reusing the `min(…, 100%)` fit-to-screen fix.
 - **Width:** two-instance mode widens the container beyond the single-mode
   `960px` cap (to ~`96vw`) so two form columns fit; single mode keeps the `960px`
   centered column unchanged.
