@@ -176,181 +176,187 @@ function SimulationPanel({ variant = 'blue' }) {
 
   return (
     <div className={`sim-panel sim-panel--${variant}`}>
-      <fieldset className="field-group">
-        <legend>Data Presets</legend>
-        <div className="preset-grid" role="group" aria-label="Persona presets">
-          {PRESETS.map((p) => (
-            <button
-              type="button"
-              key={p.id}
-              className={`preset-pill${p.id === activePreset ? ' active' : ''}`}
-              aria-pressed={p.id === activePreset}
-              onClick={() => setActivePreset(p.id)}
-            >
-              <span className="preset-label">{p.label}</span>
-              <span className="preset-subtitle">{p.subtitle}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <div className="panel-form">
+        <fieldset className="field-group">
+          <legend>Data Presets</legend>
+          <div className="preset-grid" role="group" aria-label="Persona presets">
+            {PRESETS.map((p) => (
+              <button
+                type="button"
+                key={p.id}
+                className={`preset-pill${p.id === activePreset ? ' active' : ''}`}
+                aria-pressed={p.id === activePreset}
+                onClick={() => setActivePreset(p.id)}
+              >
+                <span className="preset-label">{p.label}</span>
+                <span className="preset-subtitle">{p.subtitle}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
 
-      <form key={activePreset} method="post" onSubmit={handleSubmit}>
-        {GROUPS.map((g) => {
-          // Merge consecutive fields sharing a `combo` id into one block so
-          // they stack together under a single shared description.
-          const items = []
-          for (const f of FIELDS.filter((x) => x.group === g.id)) {
-            const last = items[items.length - 1]
-            if (f.combo && last && last.combo === f.combo) {
-              last.fields.push(f)
-              if (!last.desc && f.comboDesc) last.desc = f.comboDesc
-            } else if (f.combo) {
-              items.push({ combo: f.combo, fields: [f], desc: f.comboDesc })
-            } else {
-              items.push({ field: f })
+        <form key={activePreset} method="post" onSubmit={handleSubmit}>
+          {GROUPS.map((g) => {
+            // Merge consecutive fields sharing a `combo` id into one block so
+            // they stack together under a single shared description.
+            const items = []
+            for (const f of FIELDS.filter((x) => x.group === g.id)) {
+              const last = items[items.length - 1]
+              if (f.combo && last && last.combo === f.combo) {
+                last.fields.push(f)
+                if (!last.desc && f.comboDesc) last.desc = f.comboDesc
+              } else if (f.combo) {
+                items.push({ combo: f.combo, fields: [f], desc: f.comboDesc })
+              } else {
+                items.push({ field: f })
+              }
             }
-          }
 
-          const renderInput = (f) => (
-            <input
-              id={f.name}
-              type="number"
-              step="any"
-              name={f.name}
-              defaultValue={active.values[f.name] ?? f.def}
-            />
-          )
+            const renderInput = (f) => (
+              <input
+                id={f.name}
+                type="number"
+                step="any"
+                name={f.name}
+                defaultValue={active.values[f.name] ?? f.def}
+              />
+            )
 
-          return (
-            <fieldset className="field-group" key={g.id}>
-              <legend>{g.title}</legend>
-              <div className="field-grid">
-                {items.map((item) =>
-                  item.combo ? (
-                    <div className="field field-combo" key={item.combo}>
-                      {item.fields.map((f) => (
-                        <div className="combo-row" key={f.name}>
-                          <label htmlFor={f.name}>{f.label}</label>
-                          {renderInput(f)}
-                        </div>
-                      ))}
-                      {item.desc && <div className="field-desc">{item.desc}</div>}
-                    </div>
-                  ) : (
-                    <div className="field" key={item.field.name}>
-                      <label htmlFor={item.field.name}>{item.field.label}</label>
-                      {renderInput(item.field)}
-                      {item.field.desc && (
-                        <div className="field-desc">{item.field.desc}</div>
-                      )}
-                    </div>
-                  )
-                )}
-              </div>
-              {g.id === 'incprofile' && (
+            return (
+              <fieldset className="field-group" key={g.id}>
+                <legend>{g.title}</legend>
                 <div className="field-grid">
-                  <div className="field">
-                    <label htmlFor="currency">Currency</label>
-                    <select
-                      id="currency"
-                      value={currency}
-                      onChange={(e) => setCurrency(e.target.value)}
-                    >
-                      {CURRENCIES.map((c) => (
-                        <option key={c.code} value={c.code}>{c.label}</option>
-                      ))}
-                    </select>
-                    <div className="field-desc">
-                      The currency your salary is paid in. Choose 'None (units)'
-                      to keep results in the model's normalized units (multiples
-                      of income) — the default.
-                    </div>
-                  </div>
-                  <div className="field">
-                    <label htmlFor="salary">Starting annual salary</label>
-                    <input
-                      id="salary"
-                      type="number"
-                      step="any"
-                      value={salary}
-                      onChange={(e) => setSalary(e.target.value)}
-                    />
-                    <div className="field-desc">
-                      Your annual pay at the starting age. Enter it in the
-                      currency chosen above to see your results as real money
-                      instead of multiples of income. If you're unsure, set
-                      Currency to 'None (units)' and leave this at 1.
-                    </div>
-                  </div>
+                  {items.map((item) =>
+                    item.combo ? (
+                      <div className="field field-combo" key={item.combo}>
+                        {item.fields.map((f) => (
+                          <div className="combo-row" key={f.name}>
+                            <label htmlFor={f.name}>{f.label}</label>
+                            {renderInput(f)}
+                          </div>
+                        ))}
+                        {item.desc && <div className="field-desc">{item.desc}</div>}
+                      </div>
+                    ) : (
+                      <div className="field" key={item.field.name}>
+                        <label htmlFor={item.field.name}>{item.field.label}</label>
+                        {renderInput(item.field)}
+                        {item.field.desc && (
+                          <div className="field-desc">{item.field.desc}</div>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
-              )}
-            </fieldset>
-          )
-        })}
+                {g.id === 'incprofile' && (
+                  <div className="field-grid">
+                    <div className="field">
+                      <label htmlFor="currency">Currency</label>
+                      <select
+                        id="currency"
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                      >
+                        {CURRENCIES.map((c) => (
+                          <option key={c.code} value={c.code}>{c.label}</option>
+                        ))}
+                      </select>
+                      <div className="field-desc">
+                        The currency your salary is paid in. Choose 'None (units)'
+                        to keep results in the model's normalized units (multiples
+                        of income) — the default.
+                      </div>
+                    </div>
+                    <div className="field">
+                      <label htmlFor="salary">Starting annual salary</label>
+                      <input
+                        id="salary"
+                        type="number"
+                        step="any"
+                        value={salary}
+                        onChange={(e) => setSalary(e.target.value)}
+                      />
+                      <div className="field-desc">
+                        Your annual pay at the starting age. Enter it in the
+                        currency chosen above to see your results as real money
+                        instead of multiples of income. If you're unsure, set
+                        Currency to 'None (units)' and leave this at 1.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </fieldset>
+            )
+          })}
 
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Running…' : 'Submit'}
-          </button>
-          <a href="/algorithm_simple.html" target="_blank" rel="noopener noreferrer">
-            <button type="button" className="btn btn-secondary">
-              Simple Algorithm Details
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Running…' : 'Submit'}
             </button>
-          </a>
-          <a href="/algorithm.html" target="_blank" rel="noopener noreferrer">
-            <button type="button" className="btn btn-secondary">
-              Technical Algorithm Details
-            </button>
-          </a>
-        </div>
-      </form>
-
-      {loading && (
-        <div className="loading">
-          <div className="progress-track">
-            <div className="progress-fill" style={{ width: `${progress}%` }} />
+            <a href="/algorithm_simple.html" target="_blank" rel="noopener noreferrer">
+              <button type="button" className="btn btn-secondary">
+                Simple Algorithm Details
+              </button>
+            </a>
+            <a href="/algorithm.html" target="_blank" rel="noopener noreferrer">
+              <button type="button" className="btn btn-secondary">
+                Technical Algorithm Details
+              </button>
+            </a>
           </div>
-          <p>Running simulation… {Math.floor(progress)}%</p>
-        </div>
-      )}
+        </form>
 
-      {error && <p className="error-msg">Error: {error}</p>}
-
-      {charts && (
-        <div className="results">
-          <h3>The Life Cycle Model Visualized</h3>
-          <div className="chart-grid">
-            <figure className="chart">
-              <img src={charts.lifecycle}
-                   alt="Life-cycle profiles: consumption, wealth and income by age, average stock share by age, and profiles scaled by age-20 income" />
-            </figure>
-            <figure className="chart">
-              <img src={charts.policy}
-                   alt="Policy functions: optimal consumption and stock share versus cash-on-hand at ages 25, 45 and 65" />
-            </figure>
-            <figure className="chart chart-compact">
-              <img src={charts.composition}
-                   alt="Portfolio composition by age: mean stock and bond holdings, each with a ±1 standard deviation band showing the spread across households" />
-            </figure>
+        {loading && (
+          <div className="loading">
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <p>Running simulation… {Math.floor(progress)}%</p>
           </div>
-        </div>
-      )}
+        )}
 
-      {result && (
-        <div className="results">
-          <h3>The Life Cycle Model Quantified</h3>
-          <ResultsTable
-            result={result}
-            startAge={startAge}
-            currency={currency}
-            salary={
-              Number.isFinite(Number(salary)) && Number(salary) > 0
-                ? Number(salary)
-                : 1
-            }
-          />
-        </div>
-      )}
+        {error && <p className="error-msg">Error: {error}</p>}
+      </div>
+
+      <div className="panel-charts">
+        {charts && (
+          <div className="results">
+            <h3>The Life Cycle Model Visualized</h3>
+            <div className="chart-grid">
+              <figure className="chart">
+                <img src={charts.lifecycle}
+                     alt="Life-cycle profiles: consumption, wealth and income by age, average stock share by age, and profiles scaled by age-20 income" />
+              </figure>
+              <figure className="chart">
+                <img src={charts.policy}
+                     alt="Policy functions: optimal consumption and stock share versus cash-on-hand at ages 25, 45 and 65" />
+              </figure>
+              <figure className="chart chart-compact">
+                <img src={charts.composition}
+                     alt="Portfolio composition by age: mean stock and bond holdings, each with a ±1 standard deviation band showing the spread across households" />
+              </figure>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="panel-table">
+        {result && (
+          <div className="results">
+            <h3>The Life Cycle Model Quantified</h3>
+            <ResultsTable
+              result={result}
+              startAge={startAge}
+              currency={currency}
+              salary={
+                Number.isFinite(Number(salary)) && Number(salary) > 0
+                  ? Number(salary)
+                  : 1
+              }
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
