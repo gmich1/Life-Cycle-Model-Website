@@ -9,6 +9,7 @@
   --muted: #5b6470;
   --radius: 10px;
   --radius-sm: 6px;
+  --focus-ring: rgba(0, 145, 212, 0.25);
 }
 
 .inputs-page {
@@ -86,7 +87,7 @@
 .field input:focus {
   outline: none;
   border-color: var(--imperial-light-blue);
-  box-shadow: 0 0 0 3px rgba(0, 145, 212, 0.25);
+  box-shadow: 0 0 0 3px var(--focus-ring);
   background: #fff;
 }
 .field-desc {
@@ -287,4 +288,14 @@
   font-size: 0.72rem;
   opacity: 0.8;
   margin-top: 0.15rem;
+}
+
+/* Red simulation panel: re-declare the theme variables so the whole
+   subtree (header, legends, buttons, active pills, table header, progress
+   bar, focus rings) renders red. Charts are backend PNGs and unaffected. */
+.sim-panel--red {
+  --imperial-blue: #C0272D;
+  --imperial-blue-dark: #8B1E22;
+  --imperial-light-blue: #E8686D;
+  --focus-ring: rgba(192, 39, 45, 0.25);
 }

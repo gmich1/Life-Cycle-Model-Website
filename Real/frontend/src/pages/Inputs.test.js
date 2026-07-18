@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import Inputs from './Inputs'
+import SimulationPanel from './SimulationPanel'
 
 test('form renders with the current default parameter values', () => {
   render(<Inputs />)
@@ -66,4 +67,14 @@ test('currency and salary controls render with defaults, excluded from POST (no 
   expect(salary).toHaveValue(1)
   expect(currency).not.toHaveAttribute('name')
   expect(salary).not.toHaveAttribute('name')
+})
+
+test('red variant applies the sim-panel--red class', () => {
+  const { container } = render(<SimulationPanel variant="red" />)
+  expect(container.querySelector('.sim-panel--red')).not.toBeNull()
+})
+
+test('blue variant applies the sim-panel--blue class', () => {
+  const { container } = render(<SimulationPanel variant="blue" />)
+  expect(container.querySelector('.sim-panel--blue')).not.toBeNull()
 })
