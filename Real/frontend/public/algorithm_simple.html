@@ -7953,7 +7953,9 @@ a.anchor-link {
 <script data-lifecycle-live-charts="1">
 (function () {
   try {
-    var charts = JSON.parse(localStorage.getItem("lifecycleCharts") || "null");
+    var variant = new URLSearchParams(location.search).get("variant");
+    var key = variant ? "lifecycleCharts:" + variant : "lifecycleCharts";
+    var charts = JSON.parse(localStorage.getItem(key) || "null");
     if (!charts) return;
     var order = ["lifecycle","policy"];
     var imgs = document.querySelectorAll("img");

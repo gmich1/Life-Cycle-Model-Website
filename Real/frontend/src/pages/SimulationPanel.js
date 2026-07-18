@@ -160,7 +160,13 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
       // pages (same origin) so they show this run's charts instead of their
       // frozen defaults. Their inline scripts read this on load.
       try {
-        window.localStorage.setItem('lifecycleCharts', JSON.stringify(data.charts))
+        window.localStorage.setItem(
+          `lifecycleCharts:${variant}`,
+          JSON.stringify(data.charts)
+        )
+        if (variant === 'blue') {
+          window.localStorage.setItem('lifecycleCharts', JSON.stringify(data.charts))
+        }
       } catch (e) {
         console.warn('Could not cache charts for detail pages:', e)
       }
@@ -293,12 +299,12 @@ function SimulationPanel({ variant = 'blue', hidden = false }) {
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Running…' : 'Submit'}
             </button>
-            <a href="/algorithm_simple.html" target="_blank" rel="noopener noreferrer">
+            <a href={`/algorithm_simple.html?variant=${variant}`} target="_blank" rel="noopener noreferrer">
               <button type="button" className="btn btn-secondary">
                 Simple Algorithm Details
               </button>
             </a>
-            <a href="/algorithm.html" target="_blank" rel="noopener noreferrer">
+            <a href={`/algorithm.html?variant=${variant}`} target="_blank" rel="noopener noreferrer">
               <button type="button" className="btn btn-secondary">
                 Technical Algorithm Details
               </button>

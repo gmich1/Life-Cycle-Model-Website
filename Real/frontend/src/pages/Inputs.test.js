@@ -108,3 +108,17 @@ test('red panel is hidden but retained (state persists) after toggling 2 -> 1 ->
   fireEvent.click(screen.getByRole('button', { name: '2 forms' }))
   expect(container.querySelector('.sim-panel--red').querySelector('#tb')).toHaveValue(41)
 })
+
+test('blue panel detail links carry ?variant=blue', () => {
+  const { container } = render(<SimulationPanel variant="blue" />)
+  const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+  expect(hrefs).toContain('/algorithm.html?variant=blue')
+  expect(hrefs).toContain('/algorithm_simple.html?variant=blue')
+})
+
+test('red panel detail links carry ?variant=red', () => {
+  const { container } = render(<SimulationPanel variant="red" />)
+  const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+  expect(hrefs).toContain('/algorithm.html?variant=red')
+  expect(hrefs).toContain('/algorithm_simple.html?variant=red')
+})

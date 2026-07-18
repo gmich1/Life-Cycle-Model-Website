@@ -8949,7 +8949,9 @@ Acceptance: max normalized &lt;= 1e-10 -&gt; PASS
 <script data-lifecycle-live-charts="1">
 (function () {
   try {
-    var charts = JSON.parse(localStorage.getItem("lifecycleCharts") || "null");
+    var variant = new URLSearchParams(location.search).get("variant");
+    var key = variant ? "lifecycleCharts:" + variant : "lifecycleCharts";
+    var charts = JSON.parse(localStorage.getItem(key) || "null");
     if (!charts) return;
     var order = ["policy","lifecycle",null];
     var imgs = document.querySelectorAll("img");
